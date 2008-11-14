@@ -1,0 +1,167 @@
+#!/usr/bin/perl
+use lib './lib';
+use strict;
+use base 'LEOCHARRE::CLI';
+use HTML::Clean::Human ':all';
+use vars qw($INPUT $OUTPUT);
+
+
+# call it html2txt ??
+
+my $o = gopts('io:');
+
+$INPUT = resolve_input() 
+   or print "$0, missing input, see -h (help)\n" 
+   and exit 1 ;
+
+$OUTPUT = rip($INPUT);
+
+if ($o->{o}){
+   open(FILE,'>',$o->{o}) or die("cant open $$o{o} for writing, $!");
+   print FILE $OUTPUT;
+   close FILE;
+   exit;
+}
+
+print $OUTPUT;
+exit;
+
+
+
+
+
+sub resolve_input { # we want to return a text blurp
+   
+   my $input;
+   
+   #while(<>){
+   #   $input.=$_;
+   #   print STDERR '.';
+   #}
+
+   
+   for my $arg (@ARGV){
+      
+      #file or url???
+
+      if ($arg=~/^http\:/i){
+         
+         require File::Which;
+         File::Which::which('wget') or die("you don't have wget installed?");
+         
+         my $tmp = '/tmp/tmpfile.'.rand(1000).time().(int rand 1000);
+         
+         system( 'wget', $arg, '-O', $tmp ) == 0 
+            or die('bad wget '.$?);
+
+         $input .= slurp($tmp);
+         unlink $tmp;
+         debug("url $arg");
+      }
+
+
+      else {
+         -f $arg or die("file $arg is not file on disk");
+         $input .= slurp($arg);
+         debug("file $arg");
+      }
+   }
+
+   $input or return;
+   
+
+
+   #my $okchars= q/1234567890,.<>{}[]()-_=+\|/;
+
+
+   require HTML::Entities;
+   $input = HTML::Entities::decode($input);
+
+
+
+   # force utf8
+   require Encode;
+   $input = Encode::encode("utf8", $input);
+
+   $input=~s/©/(c)/sig;
+   $input=~s/||/'/sig;
+
+   
+
+   return $input;
+}
+
+
+
+
+
+
+
+
+
+sub rip {
+   my $html = shift;
+
+   $html    = rip_tables($html);
+   $html    = rip_lists($html);
+   $html    = rip_fonts($html);
+   $html    = rip_forms($html);
+
+   $html    = rip_tag($html,qw(img a)) 
+      unless $o->{i};
+
+   $html    = rip_comments($html);
+
+   $html    = rip_formatting($html);
+
+   $html    = rip_headers($html);
+   $html    = fix_whitespace($html);
+
+   return $html;
+}
+
+
+
+
+
+
+sub slurp {
+   my $in = shift;
+   
+   local $/;
+   open(FI,'<',$in) or die;
+   
+   my $t = <FI>;
+   close FI;
+   return $t;
+}
+
+
+sub usage {
+   return qq{$0 - html syntax reformatter and cleaner filter
+
+USAGE EXAMPLES
+
+   $0 ./infile.html > outfile.html
+   $0 http://thisthat.com/page.html > outfile.html
+   cat file.html | $0 > outfile.html
+
+OPTION FLAGS
+   
+   -i do not rip out img and link tags
+
+PARAMETERS
+
+   -o output file destination (instead of stdout)
+
+NOTES
+
+You can provide multiple inputs at the same time, but it would be messy .
+
+SEE ALSO
+
+L<HTML::Clean::Human> parent package
+
+
+   };
+}
