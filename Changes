@@ -1,3 +1,9 @@
+2010-01-26 14:33  cvs
+
+	* MANIFEST, Makefile.PL, bin/htmlclean, lib/HTML/Clean/Human.pm,
+	  lib/HTML/Clean/Human.pod: Cleaned up documentation, made mention
+	  of HTML::Tidy Moved doc to pod file.
+
 2008-11-14 12:11  cvs
 
 	* MANIFEST, Makefile.PL, bin/html2txt, lib/HTML/Clean/Human.pm,

@@ -3,6 +3,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
    NAME => 'HTML::Clean::Human',
    VERSION_FROM => 'lib/HTML/Clean/Human.pm',
+   ABSTRACT_FROM => 'lib/HTML/Clean/Human.pod',
+   AUTHOR=> 'Leo Charre leocharre at cpan dot org',
    
    LICENSE => 'perl',
 

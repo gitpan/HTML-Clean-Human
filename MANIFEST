@@ -3,6 +3,7 @@ MANIFEST
 Makefile.PL
 bin/htmlclean
 lib/HTML/Clean/Human.pm
+lib/HTML/Clean/Human.pod
 t/00.t
 t/01.t
 t/0_in.html
